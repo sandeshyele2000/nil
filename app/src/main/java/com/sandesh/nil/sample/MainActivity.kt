@@ -11,21 +11,28 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Api
+import androidx.compose.material.icons.filled.Http
+import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sandesh.nil.core.NIL
-import com.sandesh.nil.ui.NILInspectorScreen
 import com.sandesh.nil.ui.theme.NILTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,19 +77,9 @@ private fun SampleHostScreen() {
             .create(SampleApi::class.java)
     }
 
-    var showInspector by remember { mutableStateOf(false) }
     var statusText by remember { mutableStateOf("No calls yet") }
 
-    if (showInspector) {
-        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
-            Button(onClick = { showInspector = false }) {
-                Text("Back to App")
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            NILInspectorScreen(modifier = Modifier.fillMaxSize())
-        }
-        return
-    }
+
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Top) {
         Text("NIL Sample App", style = MaterialTheme.typography.headlineSmall)
@@ -90,16 +87,16 @@ private fun SampleHostScreen() {
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            shape = RoundedCornerShape(14.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(modifier = Modifier.padding(14.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Button(onClick = { showInspector = true }) {
-                        Text("Open Inspector")
-                    }
                     Button(
                         onClick = {
                             scope.launch {
@@ -107,6 +104,11 @@ private fun SampleHostScreen() {
                             }
                         }
                     ) {
+                        Icon(
+                            imageVector = Icons.Filled.Api,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text("Retrofit Call")
                     }
                 }
@@ -120,7 +122,28 @@ private fun SampleHostScreen() {
                         }
                     }
                 ) {
+                    Icon(
+                        imageVector = Icons.Filled.Http,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text("OkHttp Call")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        NIL.addMockEvent()
+                        statusText = "Mock event added"
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.DataObject,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Mock Event")
                 }
             }
         }
