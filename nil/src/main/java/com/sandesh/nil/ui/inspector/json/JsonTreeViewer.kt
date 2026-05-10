@@ -78,7 +78,6 @@ fun JsonTreeViewer(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
-            .padding(8.dp)
     ) {
         if (enableInternalScroll) {
             LazyColumn(state = listState, modifier = Modifier.fillMaxWidth()) {
@@ -121,9 +120,11 @@ private fun JsonRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(bg, RoundedCornerShape(6.dp))
-            .padding(vertical = 2.dp, horizontal = 4.dp)
-            .animateContentSize(),
+            .padding(vertical = 4.dp, horizontal = 4.dp)
+            .animateContentSize()
+            .clickable { expanded[row.path] = expanded[row.path] != true },
         verticalAlignment = Alignment.CenterVertically
+
     ) {
         Spacer(modifier = Modifier.width((row.depth * 12).dp))
         when (row.type) {
@@ -133,8 +134,8 @@ private fun JsonRow(
                     imageVector = if (isExpanded) Icons.Filled.ExpandMore else Icons.Filled.ChevronRight,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(16.dp)
-                        .clickable { expanded[row.path] = !isExpanded }
+                        .size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = objectOrArrayLabel(
@@ -152,8 +153,8 @@ private fun JsonRow(
                     imageVector = if (isExpanded) Icons.Filled.ExpandMore else Icons.Filled.ChevronRight,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(16.dp)
-                        .clickable { expanded[row.path] = !isExpanded }
+                        .size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = objectOrArrayLabel(
@@ -175,7 +176,8 @@ private fun JsonRow(
                     } else {
                         buildAnnotatedString { append(row.value.orEmpty()) }
                     },
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

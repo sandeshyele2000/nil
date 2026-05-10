@@ -1,5 +1,6 @@
 package com.sandesh.nil.ui.inspector.detail
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,11 +41,13 @@ fun EventDetailScreen(
     onAnalyse: (title: String, payload: String) -> Unit,
     modifier: Modifier
 ) {
-    var requestHeadersExpanded by rememberSaveable { mutableStateOf(true) }
+    var requestHeadersExpanded by rememberSaveable { mutableStateOf(false) }
+    var requestParamsExpanded by rememberSaveable { mutableStateOf(false) }
     var requestBodyExpanded by rememberSaveable { mutableStateOf(true) }
-    var responseHeadersExpanded by rememberSaveable { mutableStateOf(true) }
+    var responseHeadersExpanded by rememberSaveable { mutableStateOf(false) }
     var responseBodyExpanded by rememberSaveable { mutableStateOf(true) }
     val clipboard = LocalClipboardManager.current
+    val requestParams = remember(event.url) { formatRequestParams(event.url) }
 
     Column(
         modifier = modifier
@@ -95,6 +99,7 @@ fun EventDetailScreen(
                 text = event.url,
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -108,12 +113,21 @@ fun EventDetailScreen(
                         title = "Request Headers",
                         expanded = requestHeadersExpanded,
                         onToggle = { requestHeadersExpanded = !requestHeadersExpanded },
-                        onAnalyse = {
-                            onAnalyse("Request Headers", event.requestHeaders.orEmpty())
-                        }
                     ) {
                         Text(
                             text = event.requestHeaders.orEmpty(),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                item {
+                    CollapsibleSection(
+                        title = "Request Params",
+                        expanded = requestParamsExpanded,
+                        onToggle = { requestParamsExpanded = !requestParamsExpanded },
+                    ) {
+                        Text(
+                            text = requestParams,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
@@ -138,9 +152,6 @@ fun EventDetailScreen(
                         title = "Response Headers",
                         expanded = responseHeadersExpanded,
                         onToggle = { responseHeadersExpanded = !responseHeadersExpanded },
-                        onAnalyse = {
-                            onAnalyse("Response Headers", event.responseHeaders.orEmpty())
-                        }
                     ) {
                         Text(
                             text = event.responseHeaders.orEmpty(),
@@ -166,4 +177,23 @@ fun EventDetailScreen(
             }
         }
     }
+}
+
+private fun formatRequestParams(url: String): String {
+    val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return "No query params"
+    val names = uri.queryParameterNames
+    if (names.isEmpty()) return "No query params"
+
+    return buildString {
+        names.sorted().forEach { key ->
+            val values = uri.getQueryParameters(key)
+            if (values.isEmpty()) {
+                append(key).append(" =").append('\n')
+            } else {
+                values.forEach { value ->
+                    append(key).append(" = ").append(value).append('\n')
+                }
+            }
+        }
+    }.trimEnd()
 }

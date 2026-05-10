@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,7 +17,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material.icons.Icons
@@ -41,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import com.sandesh.nil.core.NIL
 import com.sandesh.nil.model.NetworkEvent
+import com.sandesh.nil.ui.components.NILSearchBar
 import kotlinx.coroutines.launch
 
 private enum class StatusFilter(val label: String) {
@@ -73,7 +72,7 @@ fun EventListScreen(
     if (showFilterDialog) {
         AlertDialog(
             onDismissRequest = { showFilterDialog = false },
-            title = { Text("Filter by status code") },
+            title = { Text("Filter by status code", style = MaterialTheme.typography.titleMedium) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     StatusFilter.entries.forEach { filter ->
@@ -123,12 +122,15 @@ fun EventListScreen(
                 StatusFilter.STATUS_3XX -> (event.statusCode ?: -1) in 300..399
                 StatusFilter.STATUS_4XX -> (event.statusCode ?: -1) in 400..499
                 StatusFilter.STATUS_5XX -> (event.statusCode ?: -1) in 500..599
-                StatusFilter.ERROR -> event.statusCode == null || (event.statusCode ?: 0) >= 400
+                StatusFilter.ERROR -> true
             }
         }
     }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier.fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -183,15 +185,11 @@ fun EventListScreen(
                 .fillMaxSize()
                 .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            OutlinedTextField(
+            NILSearchBar(
                 value = query,
                 onValueChange = { query = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(24.dp),
-                placeholder = { Text("Search URL / method / body", style = MaterialTheme.typography.bodyMedium) },
-                singleLine = true
+                placeholder = "Search URL / method / body",
+                textStyle = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(

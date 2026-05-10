@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -17,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -38,6 +36,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.sandesh.nil.ui.components.NILSearchBar
 import com.sandesh.nil.ui.inspector.json.JsonTreeViewer
 import com.sandesh.nil.ui.theme.NILColors
 
@@ -82,34 +81,30 @@ fun BodySearchScreen(
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        RoundedCornerShape(10.dp)
-                    )
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.align(Alignment.CenterStart)
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                        contentDescription = "Back",
-                        tint = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Column {
-                    Text(
-                        text = "Analyse",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White
-                    )
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Analyse",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -118,37 +113,42 @@ fun BodySearchScreen(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
-
-            OutlinedTextField(
+            NILSearchBar(
                 value = query,
                 onValueChange = {
                     query = it
                     currentMatch = 0
                 },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Find in payload") },
-                shape = RoundedCornerShape(24.dp),
-                singleLine = true
+                placeholder = "Search..."
             )
             Spacer(modifier = Modifier.height(8.dp))
 
             if (totalMatches > 0) {
-                Row {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = {
                         currentMatch =
                             if (currentMatch == 0) totalMatches - 1 else currentMatch - 1
                     }) {
-                        Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Up")
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowUp,
+                            contentDescription = "Up",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                     Text(
                         "${currentMatch + 1}/$totalMatches",
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     IconButton(onClick = {
                         currentMatch =
                             if (currentMatch == totalMatches - 1) 0 else currentMatch + 1
                     }) {
-                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "Down")
+                        Icon(
+                            Icons.Filled.KeyboardArrowDown,
+                            contentDescription = "Down",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             }
@@ -176,6 +176,7 @@ fun BodySearchScreen(
                         Text(
                             text = line.annotateQuery(query, NILColors.jsonMatch()),
                             style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
