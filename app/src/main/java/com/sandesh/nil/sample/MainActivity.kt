@@ -23,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.Http
-import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sandesh.nil.core.NIL
-import com.sandesh.nil.ui.theme.NILTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -53,9 +51,7 @@ class MainActivity : ComponentActivity() {
         )
 
         setContent {
-            NILTheme {
-                SampleHostScreen()
-            }
+            SampleHostScreen()
         }
     }
 }
@@ -132,19 +128,6 @@ private fun SampleHostScreen() {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Button(
-                    onClick = {
-                        NIL.addMockEvent()
-                        statusText = "Mock event added"
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.DataObject,
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Mock Event")
-                }
             }
         }
 

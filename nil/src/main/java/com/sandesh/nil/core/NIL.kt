@@ -9,7 +9,6 @@ import com.sandesh.nil.overlay.NILFloatingButtonController
 import com.sandesh.nil.storage.NILRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import java.util.UUID
 
 object NIL {
 
@@ -76,55 +75,4 @@ object NIL {
         NILRepository.clear()
     }
 
-    fun addMockEvent() {
-        val now = System.currentTimeMillis()
-        val mockRequest = """
-            {
-              "userId": 123,
-              "location": "Bengaluru",
-              "query": {
-                "category": "food",
-                "sort": "rating"
-              }
-            }
-        """.trimIndent()
-        val mockResponse = """
-            {
-              "restaurants": [
-                {
-                  "id": 1,
-                  "name": "Spice Route",
-                  "rating": 4.6,
-                  "deliveryTimeMin": 28
-                },
-                {
-                  "id": 2,
-                  "name": "Urban Bowl",
-                  "rating": 4.4,
-                  "deliveryTimeMin": 22
-                }
-              ],
-              "pagination": {
-                "page": 1,
-                "size": 20,
-                "hasNext": true
-              }
-            }
-        """.trimIndent()
-
-        NILRepository.addEvent(
-            NetworkEvent(
-                id = UUID.randomUUID().toString(),
-                url = "https://api.nil.dev/mock/restaurants",
-                method = "POST",
-                requestHeaders = "Content-Type: application/json\nAuthorization: Bearer mock-token",
-                requestBody = mockRequest,
-                responseHeaders = "Content-Type: application/json\nX-Mock: true",
-                responseBody = mockResponse,
-                statusCode = 200,
-                durationMs = 143,
-                timestamp = now
-            )
-        )
-    }
 }
