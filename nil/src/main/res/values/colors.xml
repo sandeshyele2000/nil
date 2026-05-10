@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nil_bg">#0E0F12</color>
+    <color name="nil_surface">#15171C</color>
+    <color name="nil_surface_elevated">#1C1F26</color>
+    <color name="nil_border">#2A2D36</color>
+
+    <color name="nil_accent">#D4A574</color>
+    <color name="nil_accent_active">#E0B98A</color>
+    <color name="nil_accent_subtle_bg">#2A2116</color>
+
+    <color name="nil_success">#7FB069</color>
+    <color name="nil_warning">#D6A85C</color>
+    <color name="nil_error">#C46A6A</color>
+    <color name="nil_info">#7A8BA3</color>
+
+    <color name="nil_text_primary">#E7E9EE</color>
+    <color name="nil_text_secondary">#B8BDC8</color>
+    <color name="nil_text_muted">#9AA3B2</color>
+
+    <color name="nil_json_key">#C9A86A</color>
+    <color name="nil_json_string">#B5C9A8</color>
+    <color name="nil_json_number">#D0B89F</color>
+    <color name="nil_json_bool_null">#9AA3B2</color>
+    <color name="nil_json_match">#3A2F1F</color>
+    <color name="nil_json_active_match">#5A4224</color>
+</resources>

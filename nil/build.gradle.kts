@@ -59,6 +59,10 @@ dependencies {
     )
 
     implementation(
+        "androidx.compose.material:material-icons-extended:1.7.0"
+    )
+
+    implementation(
         "androidx.activity:activity-compose:1.9.2"
     )
 

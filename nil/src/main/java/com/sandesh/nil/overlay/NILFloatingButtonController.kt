@@ -6,12 +6,12 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.TextView
+import android.widget.ImageView
+import com.sandesh.nil.R
 import com.sandesh.nil.ui.NILInspectorActivity
 import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
@@ -59,17 +59,17 @@ internal object NILFloatingButtonController {
         val startMargin = activity.dp(20)
         val topOffset = activity.dp(120)
 
-        val label = TextView(activity).apply {
-            text = "NIL"
-            gravity = Gravity.CENTER
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-            setTextColor(0xFFFFFFFF.toInt())
+        val iconButton = ImageView(activity).apply {
+            setImageResource(R.drawable.ic_public_black_24dp)
+            setColorFilter(0xFF0B0F14.toInt())
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            setPadding(activity.dp(14), activity.dp(14), activity.dp(14), activity.dp(14))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(0xFFC1121F.toInt())
-                setStroke(activity.dp(2), 0xFFFFFFFF.toInt())
+                setColor(0xFF4DD0E1.toInt())
+                setStroke(activity.dp(1), 0xAAFFFFFF.toInt())
             }
-            elevation = activity.dp(8).toFloat()
+            elevation = activity.dp(6).toFloat()
             layoutParams = FrameLayout.LayoutParams(sizePx, sizePx).apply {
                 leftMargin = startMargin
                 topMargin = topOffset
@@ -79,8 +79,8 @@ internal object NILFloatingButtonController {
             }
         }
 
-        label.setOnTouchListener(DragTouchListener(activity))
-        return label
+        iconButton.setOnTouchListener(DragTouchListener(activity))
+        return iconButton
     }
 
     private class DragTouchListener(

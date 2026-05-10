@@ -1,5 +1,6 @@
 package com.sandesh.nil.interceptor
 
+import com.sandesh.nil.core.NIL
 import com.sandesh.nil.model.NetworkEvent
 import com.sandesh.nil.storage.NILRepository
 import com.sandesh.nil.utils.RequestBodyReader
@@ -10,6 +11,10 @@ import java.util.UUID
 
 class NILInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
+        if (!NIL.shouldLogEvents()) {
+            return chain.proceed(chain.request())
+        }
+
         val request = chain.request()
         val requestStartedAt = System.currentTimeMillis()
         val requestBody = RequestBodyReader.read(request)
