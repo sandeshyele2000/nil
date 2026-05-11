@@ -44,7 +44,7 @@ Key package areas in `:nil`:
 ## Installation (Maven Central)
 
 ```kotlin
-implementation("io.github.sandeshyele2000:nil:1.0.0")
+implementation("io.github.sandeshyele2000:nil:1.0.1")
 ```
 
 ## Quick Start
@@ -54,7 +54,8 @@ implementation("io.github.sandeshyele2000:nil:1.0.0")
 ```kotlin
 NIL.initialize(
     context = applicationContext,
-    enableFloatingButton = true // optional
+    enableFloatingButton = true, // optional
+    jsonTreeMaxChars = 200_000 // optional
 )
 ```
 
@@ -72,10 +73,13 @@ All requests executed through that client are captured automatically.
 
 ## Public API
 
-### `NIL.initialize(context, enableFloatingButton = false)`
+### `NIL.initialize(context, enableFloatingButton = false, jsonTreeMaxChars = 200_000)`
 
-Initializes database/repository and optional floating inspector button.
-Safe to call multiple times (subsequent calls are ignored).
+Initializes database/repository, optional floating inspector button, and JSON tree rendering threshold.
+Safe to call multiple times; initialization runs once, while config values like `jsonTreeMaxChars` are refreshed on subsequent calls.
+
+- `jsonTreeMaxChars` controls the max payload size (in characters) eligible for JSON tree mode in Detail/Analyse screens.
+- Above this limit, the SDK falls back to raw text mode and export/share actions.
 
 ### `NIL.interceptor()`
 

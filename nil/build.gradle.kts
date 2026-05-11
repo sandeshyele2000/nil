@@ -54,14 +54,14 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.sandeshyele2000",
         artifactId = "nil",
-        version = "1.0.0"
+        version = "1.0.1"
     )
 
     pom {
         name.set("Nil")
         description.set("A composable Android library available via Maven Central.")
         inceptionYear.set("2025")
-        url.set("https://github.com/sandeshyele2000/nil")
+        url.set("https://github.com/sandeshyele2000/nil-android")
 
         licenses {
             license {
@@ -80,9 +80,9 @@ mavenPublishing {
         }
 
         scm {
-            url.set("https://github.com/sandeshyele2000/nil")
-            connection.set("scm:git:git://github.com/sandeshyele2000/nil.git")
-            developerConnection.set("scm:git:ssh://git@github.com/sandeshyele2000/nil.git")
+            url.set("https://github.com/sandeshyele2000/nil-android")
+            connection.set("scm:git:git://github.com/sandeshyele2000/nil-android.git")
+            developerConnection.set("scm:git:ssh://git@github.com/sandeshyele2000/nil-android.git")
         }
     }
 }

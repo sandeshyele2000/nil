@@ -12,17 +12,12 @@ object NILColors {
     @Composable fun border(): Color = colorResource(R.color.nil_border)
 
     @Composable fun accent(): Color = colorResource(R.color.nil_accent)
-    @Composable fun accentActive(): Color = colorResource(R.color.nil_accent_active)
-    @Composable fun accentSubtleBg(): Color = colorResource(R.color.nil_accent_subtle_bg)
-
-    @Composable fun success(): Color = colorResource(R.color.nil_success)
     @Composable fun warning(): Color = colorResource(R.color.nil_warning)
     @Composable fun error(): Color = colorResource(R.color.nil_error)
     @Composable fun info(): Color = colorResource(R.color.nil_info)
 
     @Composable fun textPrimary(): Color = colorResource(R.color.nil_text_primary)
     @Composable fun textSecondary(): Color = colorResource(R.color.nil_text_secondary)
-    @Composable fun textMuted(): Color = colorResource(R.color.nil_text_muted)
 
     @Composable fun jsonKey(): Color = colorResource(R.color.nil_json_key)
     @Composable fun jsonString(): Color = colorResource(R.color.nil_json_string)

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -16,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -36,9 +39,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import com.sandesh.nil.core.NIL
 import com.sandesh.nil.ui.components.NILSearchBar
+import com.sandesh.nil.ui.inspector.detail.DetailEmptyState
 import com.sandesh.nil.ui.inspector.json.JsonTreeViewer
 import com.sandesh.nil.ui.theme.NILColors
+import com.sandesh.nil.utils.ShareFileUtil
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun BodySearchScreen(
@@ -47,15 +54,20 @@ fun BodySearchScreen(
     onBack: () -> Unit,
     modifier: Modifier
 ) {
+    val context = LocalContext.current
     var query by rememberSaveable { mutableStateOf("") }
     var currentMatch by rememberSaveable { mutableIntStateOf(0) }
     var jsonMatchCount by rememberSaveable { mutableIntStateOf(0) }
+    var jsonPathMode by rememberSaveable { mutableStateOf(false) }
     val isJson = body.trim().startsWith("{") || body.trim().startsWith("[")
+    val jsonTreeMaxChars = NIL.jsonTreeMaxChars()
+    val canRenderJsonTree = isJson && body.length <= jsonTreeMaxChars
+    val effectiveJsonMode = isJson && canRenderJsonTree
 
-    val textMatches = remember(query, body, isJson) {
-        if (isJson) emptyList() else SearchHighlighter.findMatches(body, query)
+    val textMatches = remember(query, body, effectiveJsonMode) {
+        if (effectiveJsonMode) emptyList() else SearchHighlighter.findMatches(body, query)
     }
-    val totalMatches = if (isJson) jsonMatchCount else textMatches.size
+    val totalMatches = if (effectiveJsonMode) jsonMatchCount else textMatches.size
 
     val lines = remember(body) { body.split('\n') }
     val lineMatchIndexes = remember(query, lines) {
@@ -64,8 +76,8 @@ fun BodySearchScreen(
     }
     val lineListState = rememberLazyListState()
 
-    LaunchedEffect(currentMatch, lineMatchIndexes, isJson) {
-        if (!isJson && lineMatchIndexes.isNotEmpty()) {
+    LaunchedEffect(currentMatch, lineMatchIndexes, effectiveJsonMode) {
+        if (!effectiveJsonMode && lineMatchIndexes.isNotEmpty()) {
             lineListState.animateScrollToItem(lineMatchIndexes[currentMatch.coerceIn(0, lineMatchIndexes.lastIndex)])
         }
     }
@@ -119,11 +131,52 @@ fun BodySearchScreen(
                     query = it
                     currentMatch = 0
                 },
-                placeholder = "Search..."
+                placeholder = if (jsonPathMode && isJson) "Search JSON path..." else "Search..."
             )
             Spacer(modifier = Modifier.height(8.dp))
+            if (isJson && !canRenderJsonTree) {
+                DetailEmptyState(
+                    label = "JSON too large for tree view (${body.length} chars > $jsonTreeMaxChars). Search raw text or export payload."
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        ShareFileUtil.shareTextFile(
+                            context = context,
+                            fileName = "analyse_payload.txt",
+                            content = body,
+                            mimeType = "text/plain"
+                        )
+                    }
+                ) {
+                    Text("Export Payload")
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            if (effectiveJsonMode) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    FilterChip(
+                        selected = !jsonPathMode,
+                        onClick = {
+                            jsonPathMode = false
+                            currentMatch = 0
+                        },
+                        label = { Text("Text") }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    FilterChip(
+                        selected = jsonPathMode,
+                        onClick = {
+                            jsonPathMode = true
+                            currentMatch = 0
+                        },
+                        label = { Text("Path") }
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
-            if (totalMatches > 0) {
+            if (totalMatches > 0 && !(effectiveJsonMode && jsonPathMode)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = {
                         currentMatch =
@@ -154,10 +207,11 @@ fun BodySearchScreen(
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (isJson) {
+            if (effectiveJsonMode) {
                 JsonTreeViewer(
                     json = body,
                     query = query,
+                    pathSearchMode = jsonPathMode,
                     activeMatchIndex = currentMatch,
                     onMatchCountChanged = { count ->
                         jsonMatchCount = count

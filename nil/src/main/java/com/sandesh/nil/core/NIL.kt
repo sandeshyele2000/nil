@@ -11,18 +11,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 object NIL {
+    private const val DEFAULT_JSON_TREE_MAX_CHARS = 200_000
 
     private val interceptor = NILInterceptor()
 
     @Volatile
     private var initialized = false
+    @Volatile
+    private var jsonTreeMaxChars: Int = DEFAULT_JSON_TREE_MAX_CHARS
     private val _isLoggingPaused = MutableStateFlow(false)
     val isLoggingPaused: StateFlow<Boolean> get() = _isLoggingPaused
 
-    /**
-     * Public immutable stream
-     * (safe abstraction boundary)
-     */
     val events: StateFlow<List<NetworkEvent>> get() = NILRepository.events
 
     /**
@@ -30,8 +29,10 @@ object NIL {
      */
     fun initialize(
         context: Context,
-        enableFloatingButton: Boolean = false
+        enableFloatingButton: Boolean = false,
+        jsonTreeMaxChars: Int = DEFAULT_JSON_TREE_MAX_CHARS
     ) {
+        this.jsonTreeMaxChars = jsonTreeMaxChars.coerceAtLeast(1_000)
         if (initialized) return
 
         val appContext = context.applicationContext
@@ -51,9 +52,6 @@ object NIL {
      */
     fun interceptor(): NILInterceptor = interceptor
 
-    /**
-     * Search filter (rename for clarity)
-     */
     fun setFilter(query: String) {
         NILRepository.observeEvents(query)
     }
@@ -68,9 +66,8 @@ object NIL {
 
     fun shouldLogEvents(): Boolean = !_isLoggingPaused.value
 
-    /**
-     * Safe clear API
-     */
+    fun jsonTreeMaxChars(): Int = jsonTreeMaxChars
+
     suspend fun clearEvents() {
         NILRepository.clear()
     }

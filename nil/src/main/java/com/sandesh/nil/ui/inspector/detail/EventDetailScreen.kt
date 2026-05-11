@@ -1,6 +1,7 @@
 package com.sandesh.nil.ui.inspector.detail
 
 import android.net.Uri
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,10 +12,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -33,6 +36,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sandesh.nil.model.NetworkEvent
 import com.sandesh.nil.utils.CurlGenerator
+import com.sandesh.nil.utils.ShareFileUtil
+import com.sandesh.nil.utils.XhrGenerator
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun EventDetailScreen(
@@ -47,7 +53,10 @@ fun EventDetailScreen(
     var responseHeadersExpanded by rememberSaveable { mutableStateOf(false) }
     var responseBodyExpanded by rememberSaveable { mutableStateOf(true) }
     val clipboard = LocalClipboardManager.current
-    val requestParams = remember(event.url) { formatRequestParams(event.url) }
+    val context = LocalContext.current
+    val requestParams = remember(event.url) { parseRequestParams(event.url) }
+    val requestHeaderPairs = remember(event.requestHeaders) { parseHeaderPairs(event.requestHeaders) }
+    val responseHeaderPairs = remember(event.responseHeaders) { parseHeaderPairs(event.responseHeaders) }
 
     Column(
         modifier = modifier
@@ -72,15 +81,6 @@ fun EventDetailScreen(
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
-                IconButton(onClick = {
-                    clipboard.setText(AnnotatedString(CurlGenerator.fromEvent(event)))
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "Copy cURL",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
             }
             Text(
                 text = "Event Details",
@@ -99,9 +99,39 @@ fun EventDetailScreen(
                 text = event.url,
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 2,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onBackground
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { clipboard.setText(AnnotatedString(CurlGenerator.fromEvent(event))) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ContentCopy,
+                        contentDescription = "Copy cURL"
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Copy cURL")
+                }
+                OutlinedButton(
+                    onClick = {
+                        ShareFileUtil.shareTextFile(
+                            context = context,
+                            fileName = "request_${event.id}.xhr.js",
+                            content = XhrGenerator.fromEvent(event),
+                            mimeType = "application/javascript"
+                        )
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Code,
+                        contentDescription = "Export XHR"
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("Export XHR")
+                }
+            }
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(
@@ -114,10 +144,24 @@ fun EventDetailScreen(
                         expanded = requestHeadersExpanded,
                         onToggle = { requestHeadersExpanded = !requestHeadersExpanded },
                     ) {
-                        Text(
-                            text = event.requestHeaders.orEmpty(),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        SectionContent(
+                            onSearch = {
+                                onAnalyse("Request Headers", toKeyValueText(requestHeaderPairs))
+                            },
+                            onShare = {
+                                ShareFileUtil.shareTextFile(
+                                    context = context,
+                                    fileName = "request_headers_${event.id}.txt",
+                                    content = toKeyValueText(requestHeaderPairs),
+                                    mimeType = "text/plain"
+                                )
+                            }
+                        ) {
+                            KeyValueList(
+                                pairs = requestHeaderPairs,
+                                emptyLabel = "No request headers"
+                            )
+                        }
                     }
                 }
                 item {
@@ -126,25 +170,50 @@ fun EventDetailScreen(
                         expanded = requestParamsExpanded,
                         onToggle = { requestParamsExpanded = !requestParamsExpanded },
                     ) {
-                        Text(
-                            text = requestParams,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        SectionContent(
+                            onSearch = {
+                                onAnalyse("Request Params", toKeyValueText(requestParams))
+                            },
+                            onShare = {
+                                ShareFileUtil.shareTextFile(
+                                    context = context,
+                                    fileName = "request_params_${event.id}.txt",
+                                    content = toKeyValueText(requestParams),
+                                    mimeType = "text/plain"
+                                )
+                            }
+                        ) {
+                            KeyValueList(
+                                pairs = requestParams,
+                                emptyLabel = "No query params"
+                            )
+                        }
                     }
                 }
                 item {
                     CollapsibleSection(
                         title = "Request Body",
                         expanded = requestBodyExpanded,
-                        onToggle = { requestBodyExpanded = !requestBodyExpanded },
-                        onAnalyse = {
-                            onAnalyse("Request Body", event.requestBody.orEmpty())
-                        }
+                        onToggle = { requestBodyExpanded = !requestBodyExpanded }
                     ) {
-                        BodyViewer(
-                            body = event.requestBody,
-                            headers = event.requestHeaders
-                        )
+                        SectionContent(
+                            onSearch = {
+                                onAnalyse("Request Body", event.requestBody.orEmpty())
+                            },
+                            onShare = {
+                                ShareFileUtil.shareTextFile(
+                                    context = context,
+                                    fileName = "request_body_${event.id}.txt",
+                                    content = event.requestBody.orEmpty(),
+                                    mimeType = "text/plain"
+                                )
+                            }
+                        ) {
+                            BodyViewer(
+                                body = event.requestBody,
+                                headers = event.requestHeaders
+                            )
+                        }
                     }
                 }
                 item {
@@ -153,25 +222,50 @@ fun EventDetailScreen(
                         expanded = responseHeadersExpanded,
                         onToggle = { responseHeadersExpanded = !responseHeadersExpanded },
                     ) {
-                        Text(
-                            text = event.responseHeaders.orEmpty(),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        SectionContent(
+                            onSearch = {
+                                onAnalyse("Response Headers", toKeyValueText(responseHeaderPairs))
+                            },
+                            onShare = {
+                                ShareFileUtil.shareTextFile(
+                                    context = context,
+                                    fileName = "response_headers_${event.id}.txt",
+                                    content = toKeyValueText(responseHeaderPairs),
+                                    mimeType = "text/plain"
+                                )
+                            }
+                        ) {
+                            KeyValueList(
+                                pairs = responseHeaderPairs,
+                                emptyLabel = "No response headers"
+                            )
+                        }
                     }
                 }
                 item {
                     CollapsibleSection(
                         title = "Response Body",
                         expanded = responseBodyExpanded,
-                        onToggle = { responseBodyExpanded = !responseBodyExpanded },
-                        onAnalyse = {
-                            onAnalyse("Response Body", event.responseBody.orEmpty())
-                        }
+                        onToggle = { responseBodyExpanded = !responseBodyExpanded }
                     ) {
-                        BodyViewer(
-                            body = event.responseBody,
-                            headers = event.responseHeaders
-                        )
+                        SectionContent(
+                            onSearch = {
+                                onAnalyse("Response Body", event.responseBody.orEmpty())
+                            },
+                            onShare = {
+                                ShareFileUtil.shareTextFile(
+                                    context = context,
+                                    fileName = "response_body_${event.id}.txt",
+                                    content = event.responseBody.orEmpty(),
+                                    mimeType = "text/plain"
+                                )
+                            }
+                        ) {
+                            BodyViewer(
+                                body = event.responseBody,
+                                headers = event.responseHeaders
+                            )
+                        }
                     }
                 }
             }
@@ -179,21 +273,35 @@ fun EventDetailScreen(
     }
 }
 
-private fun formatRequestParams(url: String): String {
-    val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return "No query params"
+private fun parseRequestParams(url: String): List<DetailPair> {
+    val uri = runCatching { Uri.parse(url) }.getOrNull() ?: return emptyList()
     val names = uri.queryParameterNames
-    if (names.isEmpty()) return "No query params"
+    if (names.isEmpty()) return emptyList()
 
-    return buildString {
+    return buildList {
         names.sorted().forEach { key ->
             val values = uri.getQueryParameters(key)
             if (values.isEmpty()) {
-                append(key).append(" =").append('\n')
+                add(DetailPair(key, ""))
             } else {
                 values.forEach { value ->
-                    append(key).append(" = ").append(value).append('\n')
+                    add(DetailPair(key, value))
                 }
             }
         }
-    }.trimEnd()
+    }
+}
+
+private fun parseHeaderPairs(headers: String?): List<DetailPair> {
+    return headers
+        .orEmpty()
+        .lineSequence()
+        .mapNotNull { line ->
+            val splitIndex = line.indexOf(':')
+            if (splitIndex <= 0) return@mapNotNull null
+            val key = line.substring(0, splitIndex).trim()
+            val value = line.substring(splitIndex + 1).trim()
+            DetailPair(key = key, value = value)
+        }
+        .toList()
 }
