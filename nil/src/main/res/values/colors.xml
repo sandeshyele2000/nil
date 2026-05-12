@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="nil_bg">#EDE7DC</color>
-    <color name="nil_surface">#F5EFE6</color>
-    <color name="nil_surface_elevated">#E7D8C5</color>
-    <color name="nil_border">#C3AC99</color>
+    <color name="nil_bg">#F7F4EE</color>
+    <color name="nil_surface">#FFFDF9</color>
+    <color name="nil_surface_elevated">#F1ECE4</color>
+    <color name="nil_border">#D7CEC2</color>
 
     <color name="nil_accent">#8A6036</color>
     <color name="nil_warning">#9A6F24</color>
