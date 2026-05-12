@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
@@ -109,7 +110,8 @@ fun EventDetailScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "Copy cURL"
+                        contentDescription = "Copy cURL" ,
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Copy cURL")
@@ -126,7 +128,8 @@ fun EventDetailScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Code,
-                        contentDescription = "Export XHR"
+                        contentDescription = "Export XHR",
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("Export XHR")

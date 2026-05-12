@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 object NIL {
     private const val DEFAULT_JSON_TREE_MAX_CHARS = 200_000
+    private const val DEFAULT_ANALYSE_LAZY_TEXT_THRESHOLD_CHARS = 200_000
 
     private val interceptor = NILInterceptor()
 
@@ -19,6 +20,8 @@ object NIL {
     private var initialized = false
     @Volatile
     private var jsonTreeMaxChars: Int = DEFAULT_JSON_TREE_MAX_CHARS
+    @Volatile
+    private var analyseLazyTextThresholdChars: Int = DEFAULT_ANALYSE_LAZY_TEXT_THRESHOLD_CHARS
     private val _isLoggingPaused = MutableStateFlow(false)
     val isLoggingPaused: StateFlow<Boolean> get() = _isLoggingPaused
 
@@ -30,9 +33,11 @@ object NIL {
     fun initialize(
         context: Context,
         enableFloatingButton: Boolean = false,
-        jsonTreeMaxChars: Int = DEFAULT_JSON_TREE_MAX_CHARS
+        jsonTreeMaxChars: Int = DEFAULT_JSON_TREE_MAX_CHARS,
+        analyseLazyTextThresholdChars: Int = DEFAULT_ANALYSE_LAZY_TEXT_THRESHOLD_CHARS
     ) {
         this.jsonTreeMaxChars = jsonTreeMaxChars.coerceAtLeast(1_000)
+        this.analyseLazyTextThresholdChars = analyseLazyTextThresholdChars.coerceAtLeast(10_000)
         if (initialized) return
 
         val appContext = context.applicationContext
@@ -79,6 +84,7 @@ object NIL {
     fun shouldLogEvents(): Boolean = !_isLoggingPaused.value
 
     fun jsonTreeMaxChars(): Int = jsonTreeMaxChars
+    fun analyseLazyTextThresholdChars(): Int = analyseLazyTextThresholdChars
 
     suspend fun clearEvents() {
         NILRepository.clear()

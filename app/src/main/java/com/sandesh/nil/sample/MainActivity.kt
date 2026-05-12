@@ -55,7 +55,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         NIL.initialize(
             context = applicationContext,
-            enableFloatingButton = true
+            enableFloatingButton = true,
+            analyseLazyTextThresholdChars = 200_000
         )
 
         setContent {

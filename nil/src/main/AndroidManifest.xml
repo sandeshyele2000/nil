@@ -6,7 +6,7 @@
             android:exported="false" />
 
         <provider
-            android:name="androidx.core.content.FileProvider"
+            android:name="com.sandesh.nil.provider.NILFileProvider"
             android:authorities="${applicationId}.nil.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

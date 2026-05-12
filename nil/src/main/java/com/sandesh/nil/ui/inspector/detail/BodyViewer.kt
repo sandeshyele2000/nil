@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -23,22 +24,49 @@ import com.sandesh.nil.ui.inspector.json.JsonTreeViewer
 import com.sandesh.nil.utils.BodyPrettyPrinter
 import android.graphics.Color
 import android.webkit.WebView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun BodyViewer(
     body: String?,
     headers: String?
 ) {
-    val prettyBody = BodyPrettyPrinter.prettyPrint(body, headers).orEmpty()
-    val isJson = prettyBody.trim().startsWith("{") || prettyBody.trim().startsWith("[")
-    val isHtml = isHtmlBody(prettyBody, headers)
+    val rawBody = body.orEmpty()
     val jsonTreeMaxChars = NIL.jsonTreeMaxChars()
+    val heavyPayloadThreshold = NIL.analyseLazyTextThresholdChars()
+    val prepared by produceState<PreparedBody?>(initialValue = null, key1 = body, key2 = headers, key3 = heavyPayloadThreshold) {
+        value = withContext(Dispatchers.Default) {
+            val sourceBody = body.orEmpty()
+            val isHeavyPayload = sourceBody.length > heavyPayloadThreshold
+            val computedBody = if (isHeavyPayload) sourceBody else BodyPrettyPrinter.prettyPrint(body, headers).orEmpty()
+            PreparedBody(
+                body = computedBody,
+                isHeavyPayload = isHeavyPayload,
+                isJson = computedBody.trim().startsWith("{") || computedBody.trim().startsWith("["),
+                isHtml = isHtmlBody(computedBody, headers)
+            )
+        }
+    }
+    val preparedBody = prepared ?: run {
+        DetailLoadingState("Preparing body preview...")
+        return
+    }
+    val prettyBody = preparedBody.body
+    val isHeavyPayload = preparedBody.isHeavyPayload
+    val isJson = preparedBody.isJson
+    val isHtml = preparedBody.isHtml
     val canRenderJsonTree = prettyBody.length <= jsonTreeMaxChars
     var expanded by rememberSaveable(prettyBody) { mutableStateOf(false) }
     var htmlMode by rememberSaveable(prettyBody, headers) { mutableStateOf(false) }
 
     if (prettyBody.isBlank()) {
         DetailEmptyState(label = "No body available")
+        return
+    }
+
+    if (isHeavyPayload) {
+        DetailEmptyState(label = "Payload too large to preview (${rawBody.length} chars > $heavyPayloadThreshold).")
         return
     }
 
@@ -106,6 +134,13 @@ fun BodyViewer(
         )
     }
 }
+
+private data class PreparedBody(
+    val body: String,
+    val isHeavyPayload: Boolean,
+    val isJson: Boolean,
+    val isHtml: Boolean
+)
 
 private fun isHtmlBody(body: String, headers: String?): Boolean {
     val lowerHeaders = headers.orEmpty().lowercase()

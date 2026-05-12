@@ -54,24 +54,29 @@ fun BodySearchScreen(
     onBack: () -> Unit,
     modifier: Modifier
 ) {
+    val largeTextThresholdChars = NIL.analyseLazyTextThresholdChars()
     val context = LocalContext.current
     var query by rememberSaveable { mutableStateOf("") }
     var currentMatch by rememberSaveable { mutableIntStateOf(0) }
     var jsonMatchCount by rememberSaveable { mutableIntStateOf(0) }
     var jsonPathMode by rememberSaveable { mutableStateOf(false) }
     val isJson = body.trim().startsWith("{") || body.trim().startsWith("[")
+    val isBodyMissing = body.isBlank()
+    val isHeavyPayload = body.length > largeTextThresholdChars
     val jsonTreeMaxChars = NIL.jsonTreeMaxChars()
     val canRenderJsonTree = isJson && body.length <= jsonTreeMaxChars
     val effectiveJsonMode = isJson && canRenderJsonTree
 
-    val textMatches = remember(query, body, effectiveJsonMode) {
-        if (effectiveJsonMode) emptyList() else SearchHighlighter.findMatches(body, query)
+    val textMatches = remember(query, body, effectiveJsonMode, isHeavyPayload) {
+        if (effectiveJsonMode || isHeavyPayload) emptyList() else SearchHighlighter.findMatches(body, query)
     }
     val totalMatches = if (effectiveJsonMode) jsonMatchCount else textMatches.size
 
-    val lines = remember(body) { body.split('\n') }
-    val lineMatchIndexes = remember(query, lines) {
-        if (query.isBlank()) emptyList()
+    val lines = remember(body, isHeavyPayload) {
+        if (isHeavyPayload) emptyList() else body.split('\n')
+    }
+    val lineMatchIndexes = remember(query, lines, isHeavyPayload) {
+        if (isHeavyPayload || query.isBlank()) emptyList()
         else lines.mapIndexedNotNull { idx, line -> if (line.contains(query, ignoreCase = true)) idx else null }
     }
     val lineListState = rememberLazyListState()
@@ -100,7 +105,7 @@ fun BodySearchScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Column(
@@ -110,7 +115,7 @@ fun BodySearchScreen(
                 Text(
                     text = "Analyse",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = title,
@@ -125,10 +130,22 @@ fun BodySearchScreen(
                 .fillMaxSize()
                 .padding(12.dp)
         ) {
+            if (isBodyMissing) {
+                DetailEmptyState(label = emptyAnalyseLabel(title))
+                return@Column
+            }
+
+            if (isHeavyPayload) {
+                DetailEmptyState(
+                    label = "Payload too large to preview (${body.length} chars > $largeTextThresholdChars). Use Share to export payload."
+                )
+                return@Column
+            }
+
             NILSearchBar(
                 value = query,
-                onValueChange = {
-                    query = it
+                onValueChange = { value ->
+                    query = value
                     currentMatch = 0
                 },
                 placeholder = if (jsonPathMode && isJson) "Search JSON path..." else "Search..."
@@ -247,6 +264,16 @@ fun BodySearchScreen(
                 }
             }
         }
+    }
+}
+
+private fun emptyAnalyseLabel(title: String): String {
+    val normalized = title.lowercase()
+    return when {
+        "param" in normalized -> "No params available"
+        "header" in normalized -> "No headers available"
+        "body" in normalized -> "No body available"
+        else -> "No data available"
     }
 }
 

@@ -3,8 +3,10 @@ package com.sandesh.nil.ui.theme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
@@ -22,9 +24,10 @@ private val NilTypography = Typography(
 
 @Composable
 fun NILTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val darkOnlyScheme = darkColorScheme(
+    val darkScheme = darkColorScheme(
         primary = NILColors.accent(),
         onPrimary = NILColors.textPrimary(),
         primaryContainer = NILColors.surfaceElevated(),
@@ -43,12 +46,32 @@ fun NILTheme(
         error = NILColors.error(),
         onError = NILColors.textPrimary()
     )
+    val lightScheme = lightColorScheme(
+        primary = NILColors.accent(),
+        onPrimary = NILColors.surface(),
+        primaryContainer = NILColors.surfaceElevated(),
+        onPrimaryContainer = NILColors.textPrimary(),
+        secondary = NILColors.info(),
+        onSecondary = NILColors.surface(),
+        tertiary = NILColors.warning(),
+        onTertiary = NILColors.surface(),
+        background = NILColors.bg(),
+        onBackground = NILColors.textPrimary(),
+        surface = NILColors.surface(),
+        onSurface = NILColors.textPrimary(),
+        surfaceVariant = NILColors.surfaceElevated(),
+        onSurfaceVariant = NILColors.textSecondary(),
+        outline = NILColors.border(),
+        error = NILColors.error(),
+        onError = NILColors.surface()
+    )
+    val colorScheme = if (darkTheme) darkScheme else lightScheme
 
     CompositionLocalProvider(
         LocalNILSpacing provides NILSpacing()
     ) {
         MaterialTheme(
-            colorScheme = darkOnlyScheme,
+            colorScheme = colorScheme,
             typography = NilTypography,
             content = content
         )
