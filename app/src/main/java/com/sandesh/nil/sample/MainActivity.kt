@@ -47,6 +47,8 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
+import java.net.HttpURLConnection
+import java.net.URL
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,6 +133,23 @@ private fun SampleHostScreen() {
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text("OkHttp Call")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        scope.launch {
+                            statusText = runHttpUrlConnectionCall()
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Http,
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text("HttpURLConnection Call")
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -263,6 +282,30 @@ private suspend fun runOkHttpCall(client: OkHttpClient): String {
     }
 }
 
+private suspend fun runHttpUrlConnectionCall(): String {
+    return withContext(Dispatchers.IO) {
+        runCatching {
+            val connection = (URL("https://httpbin.org/get?from=http-url-connection").openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 15_000
+                readTimeout = 15_000
+            }
+
+            val responseBody = NIL.interceptor("httpURL").intercept(
+                connection = connection,
+                execute = { conn ->
+                    conn.inputStream.bufferedReader().use { reader -> reader.readText() }
+                },
+                responseBodyExtractor = { it }
+            )
+
+            "HttpURLConnection: HTTP ${connection.responseCode} body=${responseBody.length} chars"
+        }.getOrElse { throwable ->
+            "HttpURLConnection failed: ${throwable.message}"
+        }
+    }
+}
+
 private interface SampleApi {
     @GET("posts/1")
     suspend fun getPost(): Response<Post>
@@ -331,6 +374,6 @@ private fun buildNestedJson(depth: Int): String {
     """.trimIndent()
 
     return (depth downTo 1).fold(leaf) { acc, level ->
-        """{"level_$level":{"meta":{"path":"root.level_$level"},"child":$acc}}"""
+        """{"level_$level":{"meta":{"path":"root.level_$level"},"responses":[{"id":"resp_${level}_a","status":"ok","metrics":{"latencyMs":${level * 7},"cacheHit":${level % 2 == 0}}},{"id":"resp_${level}_b","status":"partial","tags":["nested","array","level_$level"],"checks":[{"name":"schema","passed":true},{"name":"limits","passed":${level % 3 != 0}}]}],"child":$acc}}"""
     }
 }

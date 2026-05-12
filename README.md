@@ -2,12 +2,12 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.sandeshyele2000/nil)](https://central.sonatype.com/artifact/io.github.sandeshyele2000/nil)
 
-N.I.L (Network Intelligence Layer) is an Android network inspector library for **OkHttp** clients.
+N.I.L (Network Intelligence Layer) is an Android network inspector library for **OkHttp** and **HttpURLConnection** clients.
 It captures request/response data, stores events locally with Room, and provides a built-in Jetpack Compose UI to inspect network traffic inside your app.
 
 ## What It Does
 
-- Captures HTTP traffic via `NIL.interceptor()`.
+- Captures HTTP traffic via a single API: `NIL.interceptor()` (OkHttp) or `NIL.interceptor("httpURL")` (HttpURLConnection).
 - Persists events in local Room database.
 - Provides inspector UI (`NILInspectorActivity`) with:
 - Event list with search.
@@ -27,7 +27,7 @@ It captures request/response data, stores events locally with Room, and provides
 Key package areas in `:nil`:
 
 - `core/` → public API (`NIL`).
-- `interceptor/` → OkHttp interceptor implementation.
+- `interceptor/` → OkHttp + HttpURLConnection interceptor implementations.
 - `storage/`, `database/`, `model/` → persistence layer.
 - `ui/` → inspector activity/screens/components.
 - `overlay/` → floating button controller.
@@ -44,7 +44,7 @@ Key package areas in `:nil`:
 ## Installation (Maven Central)
 
 ```kotlin
-implementation("io.github.sandeshyele2000:nil:1.0.1")
+implementation("io.github.sandeshyele2000:nil:1.0.2")
 ```
 
 ## Quick Start
@@ -71,6 +71,20 @@ val client = OkHttpClient.Builder()
 
 All requests executed through that client are captured automatically.
 
+### 4) Wrap HttpURLConnection calls (optional)
+
+```kotlin
+val connection = (URL("https://httpbin.org/get?from=http-url-connection").openConnection() as HttpURLConnection).apply {
+    requestMethod = "GET"
+}
+
+val responseBody = NIL.interceptor("httpURL").intercept(
+    connection = connection,
+    execute = { it.inputStream.bufferedReader().use { reader -> reader.readText() } },
+    responseBodyExtractor = { it }
+)
+```
+
 ## Public API
 
 ### `NIL.initialize(context, enableFloatingButton = false, jsonTreeMaxChars = 200_000)`
@@ -83,7 +97,12 @@ Safe to call multiple times; initialization runs once, while config values like 
 
 ### `NIL.interceptor()`
 
-Returns the singleton `NILInterceptor` instance for OkHttp.
+Returns the singleton interceptor for OkHttp usage.
+
+### `NIL.interceptor(type: String)`
+
+Single entrypoint with explicit transport selection.
+Use `NIL.interceptor("httpURL").intercept(...)` to wrap `HttpURLConnection` execution and log request/response details.
 
 ### `NIL.events: StateFlow<List<NetworkEvent>>`
 
@@ -159,7 +178,8 @@ Run tests:
 
 ## Notes & Limitations
 
-- N.I.L only captures calls made by OkHttp clients where `NIL.interceptor()` is added.
+- N.I.L captures calls made by OkHttp clients where `NIL.interceptor()` is added.
+- For `HttpURLConnection`, calls are captured only when execution is wrapped with `NIL.interceptor("httpURL").intercept(...)`.
 - Capture includes request/response body as strings; avoid enabling in production if payloads may contain sensitive data.
 - Floating button requires initialization with an `Application` context to attach across activities.
 

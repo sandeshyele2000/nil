@@ -48,9 +48,21 @@ object NIL {
     }
 
     /**
-     * OkHttp interceptor entry point
+     * Interceptor entry point. Defaults to OkHttp when no type is provided.
      */
     fun interceptor(): NILInterceptor = interceptor
+
+    /**
+     * Unified interceptor entry point with explicit type selection.
+     * Supported values: "okhttp", "httpurl", "httpurlconnection"
+     */
+    fun interceptor(type: String): NILInterceptor {
+        val normalizedType = type.trim().lowercase()
+        require(normalizedType in setOf("okhttp", "httpurl", "httpurlconnection")) {
+            "Unsupported interceptor type: $type"
+        }
+        return interceptor
+    }
 
     fun setFilter(query: String) {
         NILRepository.observeEvents(query)

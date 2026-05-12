@@ -1,58 +1,64 @@
 package com.sandesh.nil.interceptor
 
-import com.sandesh.nil.core.NIL
-import com.sandesh.nil.model.NetworkEvent
-import com.sandesh.nil.storage.NILRepository
 import com.sandesh.nil.utils.RequestBodyReader
 import com.sandesh.nil.utils.ResponseBodyReader
 import okhttp3.Interceptor
 import okhttp3.Response
-import java.util.UUID
+import java.net.HttpURLConnection
 
 class NILInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        if (!NIL.shouldLogEvents()) {
-            return chain.proceed(chain.request())
-        }
-
         val request = chain.request()
-        val requestStartedAt = System.currentTimeMillis()
-        val requestBody = RequestBodyReader.read(request)
-        val requestHeaders = request.headers.toFlatString()
-
-        val response = try {
-            chain.proceed(request)
-        } catch (throwable: Throwable) {
-            val failedEvent = NetworkEvent(
-                id = UUID.randomUUID().toString(),
-                url = request.url.toString(),
-                method = request.method,
-                requestHeaders = requestHeaders,
-                requestBody = requestBody,
-                responseHeaders = null,
-                responseBody = throwable.message,
-                statusCode = null,
-                durationMs = System.currentTimeMillis() - requestStartedAt,
-                timestamp = requestStartedAt
-            )
-            NILRepository.addEvent(failedEvent)
-            throw throwable
-        }
-
-        val completedEvent = NetworkEvent(
-            id = UUID.randomUUID().toString(),
+        return captureNetworkEvent(
             url = request.url.toString(),
             method = request.method,
-            requestHeaders = requestHeaders,
-            requestBody = requestBody,
-            responseHeaders = response.headers.toFlatString(),
-            responseBody = ResponseBodyReader.read(response),
-            statusCode = response.code,
-            durationMs = System.currentTimeMillis() - requestStartedAt,
-            timestamp = requestStartedAt
+            requestHeaders = request.headers.toFlatString(),
+            requestBody = RequestBodyReader.read(request),
+            execute = { chain.proceed(request) },
+            onSuccess = { response ->
+                CaptureResult(
+                    responseHeaders = response.headers.toFlatString(),
+                    responseBody = ResponseBodyReader.read(response),
+                    statusCode = response.code
+                )
+            },
+            onFailure = { throwable ->
+                CaptureResult(
+                    responseHeaders = null,
+                    responseBody = throwable.message,
+                    statusCode = null
+                )
+            }
         )
-        NILRepository.addEvent(completedEvent)
-        return response
+    }
+
+    fun <T> intercept(
+        connection: HttpURLConnection,
+        requestBody: String? = null,
+        execute: (HttpURLConnection) -> T,
+        responseBodyExtractor: (T) -> String? = { null }
+    ): T {
+        return captureNetworkEvent(
+            url = connection.url.toString(),
+            method = connection.requestMethod.orEmpty(),
+            requestHeaders = connection.requestProperties.toFlatString(),
+            requestBody = requestBody,
+            execute = { execute(connection) },
+            onSuccess = { result ->
+                CaptureResult(
+                    responseHeaders = connection.headerFields.toFlatString(),
+                    responseBody = responseBodyExtractor(result),
+                    statusCode = connection.safeResponseCode()
+                )
+            },
+            onFailure = { throwable ->
+                CaptureResult(
+                    responseHeaders = connection.headerFields.toFlatString(),
+                    responseBody = throwable.message,
+                    statusCode = connection.safeResponseCode()
+                )
+            }
+        )
     }
 }
 
@@ -64,3 +70,23 @@ private fun okhttp3.Headers.toFlatString(): String = buildString {
         append('\n')
     }
 }.trimEnd()
+
+private fun Map<String?, List<String>?>.toFlatString(): String? {
+    if (isEmpty()) return null
+    val content = buildString {
+        entries.forEach { entry ->
+            val name = entry.key
+            val values = entry.value
+            if (name.isNullOrBlank()) return@forEach
+            values.orEmpty().forEach { value ->
+                append(name)
+                append(": ")
+                append(value)
+                append('\n')
+            }
+        }
+    }.trimEnd()
+    return content.ifBlank { null }
+}
+
+private fun HttpURLConnection.safeResponseCode(): Int? = runCatching { responseCode }.getOrNull()
