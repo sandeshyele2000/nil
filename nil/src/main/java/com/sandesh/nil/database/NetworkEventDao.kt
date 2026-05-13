@@ -32,6 +32,9 @@ interface NetworkEventDao {
     )
     fun observeByQuery(query: String): Flow<List<NetworkEvent>>
 
-    @Query("DELETE FROM network_events")
+    @Query("DELETE FROM network_events WHERE pinned = 0")
     suspend fun clear()
+
+    @Query("UPDATE network_events SET pinned = :pinned WHERE id = :eventId")
+    suspend fun setPinned(eventId: String, pinned: Boolean)
 }

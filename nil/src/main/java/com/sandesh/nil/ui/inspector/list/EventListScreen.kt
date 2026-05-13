@@ -103,7 +103,7 @@ fun EventListScreen(
         AlertDialog(
             onDismissRequest = { showClearDialog = false },
             title = { Text("Clear all events?", style = MaterialTheme.typography.titleMedium) },
-            text = { Text("This will delete all logged network events.") },
+            text = { Text("This will delete all unpinned network events. Pinned events are kept.") },
             confirmButton = {
                 TextButton(onClick = {
                     showClearDialog = false
@@ -158,7 +158,7 @@ fun EventListScreen(
                     Icon(
                         Icons.Filled.FilterAlt,
                         contentDescription = "Filter",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = {
@@ -167,14 +167,14 @@ fun EventListScreen(
                     Icon(
                         imageVector = if (paused) Icons.Filled.PlayCircle else Icons.Filled.PauseCircle,
                         contentDescription = if (paused) "Resume" else "Pause",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 IconButton(onClick = { showClearDialog = true }) {
                     Icon(
                         Icons.Filled.DeleteSweep,
                         contentDescription = "Clear",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -204,7 +204,13 @@ fun EventListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(filteredByStatus, key = { it.id }) { event ->
-                    EventListRow(event = event, onClick = onClick)
+                    EventListRow(
+                        event = event,
+                        onClick = onClick,
+                        onPinToggle = { selected ->
+                            NIL.setEventPinned(selected.id, !selected.pinned)
+                        }
+                    )
                 }
             }
         }

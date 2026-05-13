@@ -80,10 +80,19 @@ fun JsonTreeViewer(
     val expanded = remember(json) {
         mutableStateMapOf<String, Boolean>().apply { put("root", true) }
     }
+    val forceExpandAll = query.isNotBlank()
     val rows = remember(rootNode, expanded.toMap(), query, pathSearchMode) {
         val out = mutableListOf<JsonRenderRow>()
         val pathFilter = query.takeIf { pathSearchMode && it.isNotBlank() }
-        appendRows(rootNode, path = "root", depth = 0, expanded = expanded, out = out, pathFilter = pathFilter)
+        appendRows(
+            rootNode,
+            path = "root",
+            depth = 0,
+            expanded = expanded,
+            out = out,
+            pathFilter = pathFilter,
+            forceExpandAll = forceExpandAll
+        )
         out
     }
     val matches = remember(query, rows) {
@@ -123,7 +132,8 @@ fun JsonTreeViewer(
                             row = row,
                             isMatch = matches.contains(index),
                             isActive = activeItemIndex == index,
-                            expanded = expanded
+                            expanded = expanded,
+                            interactionsEnabled = !forceExpandAll
                         )
                     }
                 }
@@ -138,7 +148,8 @@ fun JsonTreeViewer(
                             row = row,
                             isMatch = matches.contains(index),
                             isActive = activeItemIndex == index,
-                            expanded = expanded
+                            expanded = expanded,
+                            interactionsEnabled = !forceExpandAll
                         )
                     }
                 }
@@ -152,7 +163,8 @@ private fun JsonRow(
     row: JsonRenderRow,
     isMatch: Boolean,
     isActive: Boolean,
-    expanded: MutableMap<String, Boolean>
+    expanded: MutableMap<String, Boolean>,
+    interactionsEnabled: Boolean
 ) {
     val bg = when {
         isActive -> NILColors.jsonActiveMatch()
@@ -166,7 +178,7 @@ private fun JsonRow(
             .background(bg, RoundedCornerShape(6.dp))
             .padding(vertical = 4.dp, horizontal = 4.dp)
             .animateContentSize()
-            .clickable { expanded[row.path] = expanded[row.path] != true },
+            .clickable(enabled = interactionsEnabled) { expanded[row.path] = expanded[row.path] != true },
         verticalAlignment = Alignment.CenterVertically
 
     ) {
@@ -234,14 +246,15 @@ private fun appendRows(
     depth: Int,
     expanded: Map<String, Boolean>,
     out: MutableList<JsonRenderRow>,
-    pathFilter: String? = null
+    pathFilter: String? = null,
+    forceExpandAll: Boolean = false
 ) {
     if (pathFilter != null && !node.shouldIncludeForPathFilter(path, pathFilter)) return
 
     when (node) {
         is JsonNode.ObjectNode -> {
             val key = displayKey(node.key, depth)
-            val isExpanded = if (pathFilter != null) true else expanded[path] == true
+            val isExpanded = if (forceExpandAll || pathFilter != null) true else expanded[path] == true
             out += JsonRenderRow(
                 path = path,
                 depth = depth,
@@ -260,7 +273,8 @@ private fun appendRows(
                         depth = depth + 1,
                         expanded = expanded,
                         out = out,
-                        pathFilter = pathFilter
+                        pathFilter = pathFilter,
+                        forceExpandAll = forceExpandAll
                     )
                 }
                 out += JsonRenderRow(
@@ -277,7 +291,7 @@ private fun appendRows(
 
         is JsonNode.ArrayNode -> {
             val key = displayKey(node.key, depth)
-            val isExpanded = if (pathFilter != null) true else expanded[path] == true
+            val isExpanded = if (forceExpandAll || pathFilter != null) true else expanded[path] == true
             out += JsonRenderRow(
                 path = path,
                 depth = depth,
@@ -297,7 +311,8 @@ private fun appendRows(
                         depth = depth + 1,
                         expanded = expanded,
                         out = out,
-                        pathFilter = pathFilter
+                        pathFilter = pathFilter,
+                        forceExpandAll = forceExpandAll
                     )
                 }
                 out += JsonRenderRow(

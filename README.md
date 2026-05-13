@@ -122,7 +122,11 @@ Temporarily disable/enable event capture.
 
 ### `NIL.clearEvents()`
 
-Suspend function that clears stored events.
+Clears stored events asynchronously (host-app friendly).
+
+### `NIL.clearEventsAwait()`
+
+Suspend variant that clears events and waits for completion.
 
 ## Inspector UX
 

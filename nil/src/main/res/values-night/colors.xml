@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="nil_bg">#0E0F12</color>
-    <color name="nil_surface">#15171C</color>
-    <color name="nil_surface_elevated">#1C1F26</color>
-    <color name="nil_border">#2A2D36</color>
+    <color name="nil_bg">#121212</color>
+    <color name="nil_surface">#1A1A1A</color>
+    <color name="nil_surface_elevated">#262626</color>
+    <color name="nil_border">#3A3A3A</color>
 
-    <color name="nil_accent">#D4A574</color>
-    <color name="nil_warning">#D6A85C</color>
-    <color name="nil_error">#C46A6A</color>
-    <color name="nil_info">#7A8BA3</color>
+    <color name="nil_accent">#D35A6A</color>
+    <color name="nil_warning">#F2F2F2</color>
+    <color name="nil_error">#E0707F</color>
+    <color name="nil_info">#D4D4D4</color>
 
-    <color name="nil_text_primary">#E7E9EE</color>
-    <color name="nil_text_secondary">#B8BDC8</color>
+    <color name="nil_text_primary">#FFFFFF</color>
+    <color name="nil_text_secondary">#DADADA</color>
 
-    <color name="nil_json_key">#C9A86A</color>
-    <color name="nil_json_string">#B5C9A8</color>
-    <color name="nil_json_number">#D0B89F</color>
-    <color name="nil_json_bool_null">#9AA3B2</color>
-    <color name="nil_json_match">#3A2F1F</color>
-    <color name="nil_json_active_match">#5A4224</color>
+    <color name="nil_json_key">#FF9BA8</color>
+    <color name="nil_json_string">#FFFFFF</color>
+    <color name="nil_json_number">#F0F0F0</color>
+    <color name="nil_json_bool_null">#DADADA</color>
+    <color name="nil_json_match">#4A2D33</color>
+    <color name="nil_json_active_match">#6C3942</color>
 </resources>

@@ -8,7 +8,7 @@ import com.sandesh.nil.model.NetworkEvent
     entities = [
         NetworkEvent::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class NILDatabase: RoomDatabase() {

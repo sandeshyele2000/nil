@@ -86,8 +86,16 @@ object NIL {
     fun jsonTreeMaxChars(): Int = jsonTreeMaxChars
     fun analyseLazyTextThresholdChars(): Int = analyseLazyTextThresholdChars
 
-    suspend fun clearEvents() {
+    fun clearEvents() {
+        NILRepository.clearAsync()
+    }
+
+    suspend fun clearEventsAwait() {
         NILRepository.clear()
+    }
+
+    fun setEventPinned(eventId: String, pinned: Boolean) {
+        NILRepository.setPinned(eventId = eventId, pinned = pinned)
     }
 
 }

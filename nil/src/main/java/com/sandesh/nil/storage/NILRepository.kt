@@ -63,6 +63,20 @@ object NILRepository {
         database.networkEventDao().clear()
     }
 
+    fun clearAsync() {
+        ensureInitialized()
+        scope.launch {
+            database.networkEventDao().clear()
+        }
+    }
+
+    fun setPinned(eventId: String, pinned: Boolean) {
+        ensureInitialized()
+        scope.launch {
+            database.networkEventDao().setPinned(eventId, pinned)
+        }
+    }
+
     private fun ensureInitialized() {
         check(initialized) { "NILRepository is not initialized. Call NIL.initialize(context)." }
     }

@@ -58,16 +58,19 @@ internal object NILFloatingButtonController {
         val sizePx = activity.dp(56)
         val startMargin = activity.dp(20)
         val topOffset = activity.dp(120)
+        val fixedPrimary = 0xFFB2182B.toInt()
+        val fixedOnPrimary = 0xFFFFFFFF.toInt()
+        val fixedBorder = 0xFFEFEFEF.toInt()
 
         val iconButton = ImageView(activity).apply {
             setImageResource(R.drawable.ic_earth_mesh_24dp)
-            setColorFilter(0xFFF2C94C.toInt())
+            setColorFilter(fixedOnPrimary)
             scaleType = ImageView.ScaleType.CENTER_INSIDE
             setPadding(activity.dp(14), activity.dp(14), activity.dp(14), activity.dp(14))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(0xFF000000.toInt())
-                setStroke(activity.dp(1), 0x66F2C94C.toInt())
+                setColor(fixedPrimary)
+                setStroke(activity.dp(1), fixedBorder)
             }
             elevation = activity.dp(6).toFloat()
             layoutParams = FrameLayout.LayoutParams(sizePx, sizePx).apply {

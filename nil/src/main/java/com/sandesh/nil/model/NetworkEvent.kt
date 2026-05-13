@@ -26,5 +26,7 @@ data class NetworkEvent(
 
     val durationMs: Long,
 
-    val timestamp: Long
+    val timestamp: Long,
+
+    val pinned: Boolean = false
 )
