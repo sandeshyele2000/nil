@@ -52,7 +52,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.sandeshyele2000",
         artifactId = "nil",
-        version = "1.0.3"
+        version = "1.0.4"
     )
 
     pom {

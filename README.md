@@ -44,7 +44,7 @@ Key package areas in `:nil`:
 ## Installation (Maven Central)
 
 ```kotlin
-implementation("io.github.sandeshyele2000:nil:1.0.3")
+implementation("io.github.sandeshyele2000:nil:1.0.4")
 ```
 
 ## Quick Start
